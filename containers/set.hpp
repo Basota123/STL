@@ -89,7 +89,7 @@ public:
     iterator erase( const_iterator first, const_iterator last );
     size_type erase( const Key& key );
 
-    void swap( set& other ) noexcept
+    void swap( set& other ) noexcept;
 
     size_type count( const Key& key ) const;
 
