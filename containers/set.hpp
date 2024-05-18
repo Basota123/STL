@@ -101,12 +101,36 @@ private:
 
     class tree_iter
     {
+    private:
+        friend class list;
+
+    public:
+        using iterator_type = set::value_type;
+        using value_type = iterator_type;
+        using difference_type = ptrdiff_t;
+        using reference = value_type&;
+        using pointer = value_type*;
+        using iterator_category = std::bidirectional_iterator_tag;
+
+    private:
+        tree_iter() = delete;
+        tree_iter( const base_node& node ) : m_node( node ) {}
+
+        base_node* m_node;
+
+    public:
+        tree_iter( const tree_iter& other ) : m_node( other.m_node ) {}
+
+
+
+
+
 
     };
 
     struct base_node
     {
-        char height;
+        unsigned char height;
         base_node* left;
         base_node* right;
         base_node* parent;
@@ -123,8 +147,22 @@ private:
         node( const Key& value ) : key(value) {}
 
         template< class... Args >
-        node( Args&& ...args) : key(std::forward<Args>(args)...) {}
+        node( Args&& ...args ) : key( std::forward<Args>( args )... ) {}
     };
+
+    //members of class 
+    base_node fake_node{ '0', &fake_node, &fake_node, &fake_node };
+
+
+    // вспомогательные методы для итерации по дереву
+    static base_node* next( base_node* node );
+    static base_node* prev( base_node* node );
+
+    // методы для работы с АВЛ-деревом
+    bool is_balanced();
+    void balance( node* node );
+
+
 
 
 };
