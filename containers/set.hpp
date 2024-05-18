@@ -12,7 +12,7 @@ template< class Key >
 class set
 {
 private:
-    class bidiriter;
+    class tree_iter;
     struct base_node;
     struct node;
 
@@ -31,8 +31,8 @@ public:
     using const_reference = const value_type&;
     using pointer = std::allocator_traits<Allocator>::pointer;
     using const_pointer = std::allocator_traits<Allocator>::const_pointer;
-    using iterator = bidiriter;
-    using const_iterator = const bidiriter;
+    using iterator = tree_iter;
+    using const_iterator = const tree_iter;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
     using node_type = node;
@@ -95,6 +95,37 @@ public:
 
     iterator find( const Key& key );
     const_iterator find( const Key& key ) const;
+
+
+private:
+
+    class tree_iter
+    {
+
+    };
+
+    struct base_node
+    {
+        char height;
+        base_node* left;
+        base_node* right;
+        base_node* parent;
+
+        friend class set;
+    };
+
+    struct node : base_node 
+    {
+        Key key;
+
+        node() = default;
+        node( const node& other ) = delete;
+        node( const Key& value ) : key(value) {}
+
+        template< class... Args >
+        node( Args&& ...args) : key(std::forward<Args>(args)...) {}
+    };
+
 
 };
 
