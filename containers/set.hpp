@@ -102,7 +102,7 @@ private:
     class tree_iter
     {
     private:
-        friend class list;
+        friend class set;
 
     public:
         using iterator_type = set::value_type;
@@ -152,7 +152,9 @@ private:
 
     //members of class 
     base_node fake_node{ '0', &fake_node, &fake_node, &fake_node };
-
+    node* left = nullptr;
+    node* right = nullptr;
+    node* parent = nullptr;
 
     // вспомогательные методы для итерации по дереву
     static base_node* next( base_node* node );
@@ -162,9 +164,7 @@ private:
     bool is_balanced();
     void balance( node* node );
 
-
-
-
+    unsigned char get_height( const node* p ) const { return p?p->height:0; }
 };
 
 
