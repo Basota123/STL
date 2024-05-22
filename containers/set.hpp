@@ -130,7 +130,7 @@ private:
 
     struct base_node
     {
-        unsigned char height;
+        char height;
         base_node* left;
         base_node* right;
         base_node* parent;
@@ -162,9 +162,26 @@ private:
 
     // методы для работы с АВЛ-деревом
     bool is_balanced();
-    void balance( node* node );
+    void balance( base_node* node );
 
-    unsigned char get_height( const node* p ) const { return p?p->height:0; }
+    // вспомогательные методы для работы с АВЛ-деревом
+    char get_height( const base_node* p ) const { return p?p->height:0; }
+    int balance_factor( const base_node* p ) const { return get_height(p->right)-get_height(p->left); }
+    
+    void fix_height( base_node* p )
+    {
+        char hl = get_height(p->right);
+        char hr = get_height(p->left);
+
+        p->height = (hl > hr? hl : hr) + 1;
+    }
+
+    // балансировка узлов
+    base_node* right_rotate( base_node* p )
+    {
+        base_node* temp = p->left;
+        p->left = q->right;
+    }
 };
 
 
