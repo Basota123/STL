@@ -7,6 +7,7 @@
 #include <concepts>
 #include <iterator>
 #include <utility>
+#include <initializer_list>
 
 template< class Key > 
 class set
@@ -19,7 +20,7 @@ private:
 
 public:
     using Compare = std::less<Key>;
-    using Allocator = std::allocator<Key>;
+    using Allocator = std::allocator<node>;
     using key_type = Key;
     using value_type = Key;
     using size_type = size_t;
@@ -36,6 +37,7 @@ public:
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
     using node_type = node;
+    using alloc_traits = std::allocator_traits<allocator_type>;
 
 public:
     set();
@@ -121,11 +123,14 @@ private:
     public:
         tree_iter( const tree_iter& other ) : m_node( other.m_node ) {}
 
-
-
-
-
-
+        reference operator * () const noexcept { return static_cast<node>( m_node )->key; } 
+        pointer operator -> () const noexcept { return &static_cast<node>( m_node )->key; }
+        set::iterator& operator ++ () { m_node = set::next( m_node ); return *this; }
+        set::iterator& operator -- () { m_node = set::prev( m_node ); return *this; }
+        set::iterator operator ++ (int) { tree_iter tmp = *this; ++(*this); return tmp; } 
+        set::iterator operator -- (int) { tree_iter tmp = *this; --(*this); return tmp; } 
+        bool operator == ( const tree_iter& other ) { return m_node == other.m_node; }
+        bool operator != ( const tree_iter& other ) { return !(*this == other.m_node); }
     };
 
     struct base_node
@@ -152,36 +157,38 @@ private:
 
     //members of class 
     base_node fake_node{ '0', &fake_node, &fake_node, &fake_node };
-    node* left = nullptr;
-    node* right = nullptr;
-    node* parent = nullptr;
+    node* root = nullptr;
+    allocator_type m_alloc;
+    size_type m_size = 0;
 
-    // вспомогательные методы для итерации по дереву
-    static base_node* next( base_node* node );
-    static base_node* prev( base_node* node );
-
-    // методы для работы с АВЛ-деревом
-    bool is_balanced();
-    void balance( base_node* node );
-
-    // вспомогательные методы для работы с АВЛ-деревом
-    char get_height( const base_node* p ) const { return p?p->height:0; }
-    int balance_factor( const base_node* p ) const { return get_height(p->right)-get_height(p->left); }
-    
-    void fix_height( base_node* p )
-    {
-        char hl = get_height(p->right);
-        char hr = get_height(p->left);
-
-        p->height = (hl > hr? hl : hr) + 1;
+    // creating and destroying node methods
+    node* create_node(const Key& key) noexcept { 
+        node* new_node = alloc_traits::allocate(m_alloc, 1);
+		alloc_traits::construct(m_alloc, new_node, key);
+        return new_node;
     }
 
-    // балансировка узлов
-    base_node* right_rotate( base_node* p )
-    {
-        base_node* temp = p->left;
-        p->left = q->right;
+    void destroy_node(node* node) noexcept {
+        alloc_traits::destroy(m_alloc, node);
+        alloc_traits::deallocate(m_alloc, node, 1);
     }
+
+    // healping methods for AVL-tree
+    static base_node* next( base_node* node ) noexcept;
+    static base_node* prev( base_node* node ) noexcept;
+
+    void recursive_clear( base_node* node ) noexcept;
+    char height( base_node* node ) noexcept;
+    void fix_height( base_node* node ) noexcept;
+    int balance( base_ node* node ) noexcept;
+
+    base_node* left_rotate( iterator it ) noexcept;
+    base_node* right_rotate( iterator it ) noexcept;
+
+    void balance_after_insertion( base_node* node ) noexcept;
+    void balance_after_deletion( base_node* node ) noexcept;
+
+
 };
 
 
