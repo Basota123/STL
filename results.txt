@@ -1,0 +1,32 @@
+std::set versus own_set
+insertion time 
+std_set: 1.21941
+own_set: 1.07457
+ 
+std_set: 1.50564
+own_set: 1.29849
+ 
+std_set: 1.44329
+own_set: 1.28929
+ 
+std_set: 1.42381
+own_set: 1.25855
+ 
+std_set: 1.54773
+own_set: 1.39963
+ 
+std_set: 1.45572
+own_set: 1.29109
+ 
+std_set: 1.4333
+own_set: 1.33639
+ 
+std_set: 1.43176
+own_set: 1.27197
+ 
+std_set: 1.43723
+own_set: 1.27577
+ 
+std_set: 1.42691
+own_set: 1.29547
+ 
