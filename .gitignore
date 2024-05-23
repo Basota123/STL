@@ -1,3 +1,7 @@
 main.cpp
 main.exe
 .vscode
+cmake_install.cmake
+CMakeFiles
+CMakeCache.txt
+Makefile
