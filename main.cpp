@@ -2,12 +2,11 @@
 #include "containers/string.hpp"
 
 
-
-
 int main()
 {
 	
 	string x;
+	
 	
 	return 0;
 }
