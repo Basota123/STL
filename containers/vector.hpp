@@ -839,7 +839,7 @@ inline void vector<T>::resize( size_type count, const T& value )
         return;
     }
 
-    else if (count <= m_size)
+    else if (count < m_size)
     {
         m_size = count;
         return;

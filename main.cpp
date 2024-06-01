@@ -1,11 +1,18 @@
 #include <iostream>
-#include "containers/string.hpp"
+//#include "containers/string.hpp"
+#include <string>
 
+using std::cout;
 
 int main()
 {
+	const char* s = "hello";
+	std::string x(s, 4);
 	
-	string x;
+	
+	
+	cout << x;
+	
 	
 	
 	return 0;
