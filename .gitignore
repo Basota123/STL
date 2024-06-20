@@ -4,3 +4,6 @@ cmake_install.cmake
 CMakeFiles
 CMakeCache.txt
 Makefile
+containers/main.cpp
+containers/main.exe
+containers/array.hpp
