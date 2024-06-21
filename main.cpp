@@ -1,23 +1,47 @@
+#include <iomanip>
 #include <iostream>
-//#include "containers/string.hpp"
 #include <string>
+#include "containers/vector.hpp"
 
-using std::cout;
 
+ 
+template<typename T>
+std::ostream& operator<<(std::ostream& s, const vector<T>& v)
+{
+    s.put('{');
+    for (char comma[]{'\0', ' ', '\0'}; const auto& e : v)
+        s << comma << e, comma[0] = ',';
+    return s << "}\n";
+}
+ 
 int main()
 {
-	const char* s = "hello";
-	std::string x(s, 4);
-	
-	
-	
-	cout << x;
-	
-	
-	
+    // C++11 initializer list syntax:
+    vector<std::string> words1{"the", "frogurt", "is", "also", "cursed"};
+    std::cout << "1: " << words1;
+ 
+    // words2 == words1
+    vector<std::string> words2(words1.begin(), words1.end());
+    std::cout << "2: " << words2;
+ 
+    // words3 == words1
+    vector<std::string> words3(words1);
+    std::cout << "3: " << words3;
+ 
+    // words4 is {"Mo", "Mo", "Mo", "Mo", "Mo"}
+    vector<std::string> words4(5, "Mo");
+    std::cout << "4: " << words4;
+ 
+    auto const rg = {"cat", "cow", "crow"};
+#ifdef __cpp_lib_containers_ranges
+    std::vector<std::string> words5(std::from_range, rg); // overload (11)
+#else
+    vector<std::string> words5(rg.begin(), rg.end()); // overload (5)
+#endif
+    std::cout << "5: " << words5;
+
 	return 0;
 }
-
 
 
 
