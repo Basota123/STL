@@ -326,7 +326,7 @@ inline list<T, Allocator>::list(size_type count, const Allocator& alloc) : m_all
 
 template <class T, class Allocator>
 template <std::input_iterator InputIt>
-inline list<T, Allocator>::list(InputIt first, InputIt last, const Allocator &alloc) : m_alloc(alloc)
+inline list<T, Allocator>::list(InputIt first, InputIt last, const Allocator& alloc) : m_alloc(alloc)
 {
 	fill_list(first, last);
 }
@@ -334,6 +334,7 @@ inline list<T, Allocator>::list(InputIt first, InputIt last, const Allocator &al
 template<class T, class Allocator>
 inline list<T, Allocator>::list(const list& other)
 {
+	m_alloc = node_allocator_traits::select_on_container_copy_construction(other.m_alloc);
 	fill_list(other.begin(), other.end());
 }
 
@@ -348,7 +349,7 @@ inline list<T, Allocator>::list(list&& other)
 {
 	m_head = other.m_head;
 	m_tail = other.m_tail;
-	m_alloc = std::move(other.m_alloc);
+	m_alloc = node_allocator_traits::select_on_container_copy_construction(std::move(other.m_alloc));
 
 	fake_node.next = m_head;
 	fake_node.prev = m_tail;
@@ -390,6 +391,76 @@ inline list<T, Allocator>::list(std::initializer_list<T> init, const Allocator& 
 template <class T, class Allocator>
 inline list<T, Allocator>::~list()
 {
+	clear();
+}
+
+template <class T, class Allocator>
+inline list<T, Allocator>& list<T, Allocator>::operator=( const list& other )
+{
+	if (this == &other) return *this;
+	else
+	{
+		clear();
+		if (node_allocator_traits::propagate_on_container_copy_assignment)
+			m_alloc = other.m_alloc;
+		
+		fill_list(other.begin(), other.end());
+		return *this;
+	}
+}
+
+template <class T, class Allocator>
+inline list<T, Allocator>& list<T, Allocator>::operator=( list&& other ) noexcept
+{
+	if (this == &other) return *this;
+	else
+	{
+		clear();
+		if (node_allocator_traits::propagate_on_container_move_assignment)
+			m_alloc = std::move(other.m_alloc);
+		
+		m_head = other.m_head;
+		m_tail = other.m_tail;
+
+		fake_node.next = m_head;
+		other.m_tail = static_cast<node*>(&other.fake_node);
+		other.m_head->prev = &other.fake_node;
+		other.m_tail->next = &other.fake_node;
+
+		return *this;
+	}
+}
+
+template <class T, class Allocator>
+inline list<T, Allocator>& list<T, Allocator>::operator=( std::initializer_list<value_type> ilist )
+{
+	clear();
+	fill_list(ilist.begin(), ilist.end());
+	return *this;
+}
+
+template <class T, class Allocator>
+inline void list<T, Allocator>::assign(size_type count, const T& value)
+{
+	fill_list(count, value);
+}
+
+template <class T, class Allocator>
+template <std::input_iterator InputIt>
+inline void list<T, Allocator>::assign(InputIt first, InputIt last)
+{
+	fill_list(first, last);
+}
+
+template <class T, class Allocator>
+inline void list<T, Allocator>::assign(std::initializer_list<T> ilist)
+{
+	fill_list(ilist.begin(), ilist.end());
+}
+
+template<class T, class Allocator>
+void list<T, Allocator>::clear()
+{
 	node* current = m_head;
 	while (current != &fake_node)
 	{
@@ -403,6 +474,19 @@ inline list<T, Allocator>::~list()
 	fake_node.next = &fake_node;
 	fake_node.prev = &fake_node;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #endif // !STL_HEADER_CXX20
 #endif // !_LIST_HPP_
