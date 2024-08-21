@@ -99,12 +99,12 @@ public:
 	// modifiers
 	void clear();
 
-	iterator insert( const_iterator pos, const T& value );
-	iterator insert( const_iterator pos, T&& value );
+	iterator insert( const_iterator pos, const T& value ) { return insert_impl(pos, create_node(value)); }
+	iterator insert( const_iterator pos, T&& value ) { return insert_impl(pos, create_node(std::move(value))); }
 	iterator insert( const_iterator pos, size_type count, const T& value );
 	template< std::input_iterator InputIt >
 	iterator insert( const_iterator pos, InputIt first, InputIt last );
-	iterator insert( const_iterator pos, std::initializer_list<T> ilist );
+	iterator insert( const_iterator pos, std::initializer_list<T> ilist ) { return insert(pos, ilist.begin(), ilist.end()); }
 
 	template< class... Args >
 	iterator emplace( const_iterator pos, Args&&... args );
@@ -274,6 +274,8 @@ private:
 			
 		}
 	}
+
+	iterator insert_impl(const_iterator pos, node* new_node);
 
 	node* create_node(const T& value)
 	{
@@ -459,7 +461,7 @@ inline void list<T, Allocator>::assign(std::initializer_list<T> ilist)
 }
 
 template<class T, class Allocator>
-void list<T, Allocator>::clear()
+inline void list<T, Allocator>::clear()
 {
 	node* current = m_head;
 	while (current != &fake_node)
@@ -475,7 +477,86 @@ void list<T, Allocator>::clear()
 	fake_node.prev = &fake_node;
 }
 
+template <class T, class Allocator>
+inline list<T, Allocator>::iterator list<T, Allocator>::insert(const_iterator pos, size_type count, const T& value)
+{
+	node* new_node = nullptr;
 
+	for (size_type i = 0; i < count; i++)
+	{
+		new_node = create_node(value);
+
+		if (pos == cend())
+		{
+			new_node->prev = m_tail;
+			new_node->next = &fake_node;
+			m_tail->next = new_node;
+			m_tail = new_node;
+		}
+		else
+		{
+			node* pos_node = static_cast<node*>(pos.m_node);
+			node* prev_pos_node = static_cast<node*>(pos.m_node->prev);
+
+			pos_node->prev = new_node;
+			new_node->next = pos_node;
+
+			prev_pos_node->next = new_node;
+			new_node->prev = prev_pos_node;
+		}
+	}
+	return iterator(new_node);
+}
+
+template <class T, class Allocator>
+template <std::input_iterator InputIt>
+inline list<T, Allocator>::iterator list<T, Allocator>::insert(const_iterator pos, InputIt first, InputIt last)
+{
+    node* new_node = nullptr;
+
+	for (; first != last; ++first)
+	{
+		new_node = create_node(*first);
+
+		if (pos == cend())
+		{
+			new_node->prev = m_tail;
+			new_node->next = &fake_node;
+			m_tail->next = new_node;
+			m_tail = new_node;
+		}
+		else
+		{
+			node* pos_node = static_cast<node*>(pos.m_node);
+			node* prev_pos_node = static_cast<node*>(pos.m_node->prev);
+
+			pos_node->prev = new_node;
+			new_node->next = pos_node;
+
+			prev_pos_node->next = new_node;
+			new_node->prev = prev_pos_node;
+		}
+	}
+	return iterator(new_node);
+}
+
+template <class T, class Allocator>
+inline list<T, Allocator>::iterator list<T, Allocator>::insert_impl(const_iterator pos, node* new_node)
+{
+	node* prev = (pos == end()) ? m_tail : static_cast<node*>(pos.m_node->prev);
+	node* next = (pos == end()) ? nullptr : static_cast<node*>(pos.m_node);
+
+	new_node->prev = prev;
+	if (prev) prev->next = new_node;
+
+	new_node->next = next;
+	if (next) next->prev = new_node;
+
+	if (prev == m_tail) m_tail = new_node;
+	if (next == m_head) m_head = new_node;
+
+	return iterator(new_node);
+}
 
 
 
