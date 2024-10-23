@@ -321,24 +321,6 @@ private:
 		node_allocator_traits::destroy(m_alloc, node);
 		node_allocator_traits::deallocate(m_alloc, node, 1);
 	}
-
-	// node* split_list()
-	// {
-	// 	if (m_head == nullptr || m_head->next == &fake_node) return m_head;
-
-	// 	node* slow = m_head;
-	// 	node* fast = m_head;
-	// 	while (fast->next != &fake_node || fast->next->next != &fake_node) 
-	// 	{
-	// 		slow = static_cast<node*>(slow->next);
-	// 		fast = static_cast<node*>(fast->next->next);
-	// 	}
-
-	// 	node* middle = static_cast<node*>(slow->next);
-	// 	slow->next = nullptr;
-
-	// 	return middle; 
-	// }
 	
 	list split_before(const_iterator here)
 	{
@@ -1014,9 +996,6 @@ inline void list<T, Allocator>::sort(Compare comp)
 {
 	merge_sort(comp, begin(), --end());
 }
-
-
-
 
 #endif // !STL_HEADER_CXX20
 #endif // !_LIST_HPP_
