@@ -174,22 +174,4 @@ constexpr array<T, N>::size_type array<T, N>::size() const noexcept
     return N;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #endif // ARRAY_HPP
