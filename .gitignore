@@ -6,4 +6,3 @@ CMakeCache.txt
 Makefile
 main.cpp
 containers/main.exe
-containers/array.hpp
