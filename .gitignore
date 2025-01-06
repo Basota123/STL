@@ -1,8 +1,8 @@
-main.exe
+main
 .vscode
 cmake_install.cmake
 CMakeFiles
 CMakeCache.txt
 Makefile
 main.cpp
-containers/main.exe
+build*
