@@ -4,5 +4,5 @@ cmake_install.cmake
 CMakeFiles
 CMakeCache.txt
 Makefile
-main.cpp
 build*
+main.cpp
