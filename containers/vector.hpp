@@ -3,14 +3,15 @@
 
 // CXX20
 
-#include <initializer_list>
 #include <memory>
+#include <limits>
+#include <concepts>
+#include <iostream>
 #include <iterator>
 #include <stdexcept>
+#include <algorithm>
 #include <type_traits>
-#include <iostream>
-#include <concepts>
-#include <limits>
+#include <initializer_list>
 
 template <
     class T, class Allocator = std::allocator<T>>
@@ -147,9 +148,9 @@ private:
         using difference_type = std::ptrdiff_t;
         using iterator_category = std::random_access_iterator_tag;
         using iterator_concept = std::contiguous_iterator_tag;
-        using iterator_type = T *;
-        using pointer = T *;
-        using reference = T &;
+        using iterator_type = T*;
+        using pointer = T*;
+        using reference = T&;
         using value_type = T;
 
         random_access_iterator(const random_access_iterator &other) : m_ptr(other.m_ptr) {}
@@ -157,7 +158,7 @@ private:
         reference operator*() const { return *m_ptr; }
         pointer operator->() const { return m_ptr; }
 
-        random_access_iterator &operator++()
+        random_access_iterator& operator++()
         {
             m_ptr++;
             return *this;
@@ -168,7 +169,7 @@ private:
             ++(*this);
             return temp;
         }
-        random_access_iterator &operator--()
+        random_access_iterator& operator--()
         {
             m_ptr--;
             return *this;
@@ -180,7 +181,7 @@ private:
             return temp;
         }
 
-        random_access_iterator &operator+=(difference_type n)
+        random_access_iterator& operator+=(difference_type n)
         {
             difference_type m = n;
             if (m >= 0)
@@ -197,14 +198,14 @@ private:
             random_access_iterator temp = *this;
             return temp += n;
         }
-        random_access_iterator &operator-=(difference_type n) { return *this += -n; }
+        random_access_iterator& operator-=(difference_type n) { return *this += -n; }
         random_access_iterator operator-(difference_type n)
         {
             random_access_iterator temp = *this;
             return temp -= n;
         }
 
-        difference_type operator-(const random_access_iterator &other) { return m_ptr - other.m_ptr; }
+        difference_type operator-(const random_access_iterator &other) const { return m_ptr - other.m_ptr; }
 
         reference operator[](difference_type n) { return *(this + n); }
 
@@ -276,7 +277,7 @@ constexpr vector<T, Allocator>::vector(InputIt first, InputIt last, const Alloca
         ++counter;
     }
         
-}   
+}
 
 template< class T, class Allocator >
 constexpr vector<T, Allocator>::vector(const vector& other)
@@ -432,11 +433,143 @@ constexpr vector<T, Allocator>& vector<T, Allocator>::operator=(std::initializer
     return *this;
 }
 
+template <class T, class Allocator>
+constexpr void vector<T, Allocator>::assign( size_type count, const T& value )
+{
+    m_size = count; 
+    if (m_capacity >= count)
+    {
+        for (size_type i = 0; i < count; ++i)
+            m_arr[i] = value;
+    }
+    
+    else if (m_capacity < count)
+    {
+        reserve(count);
+        for (size_type i = 0; i < count; ++i)
+            m_arr[i] = value;
+    }
+}
 
 template <class T, class Allocator>
-constexpr void vector<T, Allocator>::assign(size_type count, const T& value)
+template <std::input_iterator InputIt>
+constexpr void vector<T, Allocator>::assign(InputIt first, InputIt last)
 {
+    constexpr size_type count = std::distance(first, last);
 
+    m_size = count;
+    size_type counter = 0;
+
+    if (m_capacity >= count)
+    {
+        for (; first != last; ++first)
+        {
+            m_arr[counter] = *first;
+            ++counter;
+        }
+    } 
+
+    else if (m_capacity < count)
+    {
+        reserve(count);
+        for (; first != last; ++first)
+        {
+            m_arr[counter] = *first;
+            ++counter;
+        }
+    }
+}
+
+template <class T, class Allocator>
+constexpr void vector<T, Allocator>::assign(std::initializer_list<T> ilist)
+{
+    constexpr size_type count = std::distance(ilist.begin(), ilist.end());
+
+    m_size = count;
+    size_type counter = 0;
+
+    if (m_capacity >= count)
+    {
+        for (auto it = ilist.begin(); it != ilist.end(); ++it)
+        {
+            m_arr[counter] = *it;
+            ++counter;
+        }
+    } 
+
+    else if (m_capacity < count)
+    {
+        reserve(count);
+        for (auto it = ilist.begin(); it != ilist.end(); ++it)
+        {
+            m_arr[counter] = *it;
+            ++counter;
+        }
+    }
+}
+
+template <class T, class Allocator>
+constexpr typename vector<T, Allocator>::reference vector<T, Allocator>::at( size_type pos )
+{
+    if (pos >= size()) throw std::out_of_range("Index out of bounds");
+    return *(m_arr + pos);
+}
+
+template <class T, class Allocator>
+constexpr typename vector<T, Allocator>::const_reference vector<T, Allocator>::at( size_type pos ) const
+{
+    if (pos >= size()) throw std::out_of_range("Index out of bounds");
+    return *(m_arr + pos);
+}
+
+template <class T, class Allocator>
+constexpr void vector<T, Allocator>::reserve( size_type new_cap )
+{
+    if (new_cap > max_size()) throw std::length_error("New capacity is to much");
+    if (new_cap <= m_capacity) return;
+
+    pointer new_arr = std::allocator_traits<allocator_type>::allocate(m_alloc, new_cap);
+    for (size_type i = 0ul; i < m_size; ++i)
+    {
+        std::allocator_traits<allocator_type>::construct(m_alloc, new_arr + i, std::move(*(m_arr + i)));
+        std::allocator_traits<allocator_type>::destroy(m_alloc, m_arr + i);
+    }
+
+    std::allocator_traits<allocator_type>::deallocate(m_alloc, m_arr, m_capacity);
+
+    m_arr = new_arr;
+    m_capacity = new_cap;
+
+    new_arr = nullptr;
+}
+
+template <class T, class Allocator>
+constexpr void vector<T, Allocator>::shrink_to_fit()
+{
+    if (m_size == m_capacity) return;
+
+    pointer new_arr = std::allocator_traits<allocator_type>::allocate(m_alloc, m_size);
+    for (size_type i = 0ul; i < m_size; ++i)
+    {
+        std::allocator_traits<allocator_type>::construct(m_alloc, new_arr + i, std::move(*(m_arr + i)));
+        std::allocator_traits<allocator_type>::destroy(m_alloc, m_arr + i);
+    }
+
+    std::allocator_traits<allocator_type>::deallocate(m_alloc, m_arr, m_capacity);
+
+    m_arr = new_arr;
+    m_capacity = m_size;
+
+    new_arr = nullptr;
+}
+
+template <class T, class Allocator>
+constexpr void vector<T, Allocator>::clear() noexcept
+{
+    for (size_type i = 0ul; i < m_size; i++)
+        std::allocator_traits<allocator_type>::destroy(m_alloc, m_arr + i);
+
+    m_size = 0ul;
 }
 
 #endif //! OWN_VECTOR_H
