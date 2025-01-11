@@ -531,7 +531,7 @@ constexpr void vector<T, Allocator>::reserve( size_type new_cap )
     pointer new_arr = std::allocator_traits<allocator_type>::allocate(m_alloc, new_cap);
     for (size_type i = 0ul; i < m_size; ++i)
     {
-        std::allocator_traits<allocator_type>::construct(m_alloc, new_arr + i, std::move(*(m_arr + i)));
+        std::allocator_traits<allocator_type>::construct(m_alloc, new_arr + i, *(m_arr + i));
         std::allocator_traits<allocator_type>::destroy(m_alloc, m_arr + i);
     }
 
@@ -571,6 +571,97 @@ constexpr void vector<T, Allocator>::clear() noexcept
 
     m_size = 0ul;
 }
+
+template <class T, class Allocator>
+constexpr typename vector<T, Allocator>::iterator vector<T, Allocator>::insert(const_iterator pos, const T& value)
+{
+    const size_type index = pos - cbegin();
+    if (m_size >= m_capacity) reserve(2 * m_capacity);
+
+    for (size_type i = m_size; i > index; i--)
+        m_arr[i] = m_arr[i - 1];
+    
+    m_arr[index] = value;
+
+    return iterator(m_arr + index);
+}
+
+template <class T, class Allocator>
+constexpr typename vector<T, Allocator>::iterator vector<T, Allocator>::insert(const_iterator pos, T&& value)
+{
+    const size_type index = pos - cbegin();
+    if (m_size >= m_capacity) reserve(2 * m_capacity);
+
+    for (size_type i = m_size; i > index; i--)
+        m_arr[i] = m_arr[i - 1];
+    
+    m_arr[index] = std::move(value);
+    m_size++;
+
+    return iterator(m_arr + index);
+}
+
+template <class T, class Allocator>
+constexpr typename vector<T, Allocator>::iterator vector<T, Allocator>::insert(const_iterator pos,
+    size_type count, const T& value)
+{
+    const size_type index = pos - cbegin();
+    if (m_size >= m_capacity) reserve(2 * m_capacity);
+
+    for (size_type i = m_size; i > index; i--)
+        m_arr[i + count - 1] = m_arr[i - 1];
+    
+    for (size_type i = index; i < index + count; ++i)
+        m_arr[i] = value;
+
+    m_size += count;
+    return iterator(m_arr + index);
+}
+
+template <class T, class Allocator>
+template <std::input_iterator InputIt>
+constexpr typename vector<T, Allocator>::iterator vector<T, Allocator>::insert(const_iterator pos, 
+    InputIt first, InputIt last)
+{
+    const size_type index = pos - cbegin();
+    if (m_size >= m_capacity) reserve(2 * m_capacity);
+
+    const difference_type count = std::distance(first, last);
+
+    for (size_type i = m_size; i > index; i--)
+        m_arr[i + count - 1] = m_arr[i - 1];
+
+    for (size_type i = 0; i < count; ++i)
+        m_arr[index + i] = *first++;
+    
+    m_size += count;
+    return iterator(m_arr + index);    
+}
+
+template <class T, class Allocator>
+constexpr typename vector<T, Allocator>::iterator vector<T, Allocator>::insert(const_iterator pos,
+    std::initializer_list<T> ilist)
+{
+    const size_type index = pos - cbegin();
+    if (m_size >= m_capacity) reserve(2 * m_capacity);
+
+    auto it = ilist.begin();
+    const difference_type count = std::distance(it, ilist.end());
+
+    for (size_type i = m_size; i > index; i--)
+        m_arr[i + count - 1] = m_arr[i - 1];
+
+    for (size_type i = 0; i < count; ++i)
+        m_arr[index + i] = *it++;
+    
+    m_size += count;
+    return iterator(m_arr + index);
+}
+
+
+
+
+
 
 #endif //! OWN_VECTOR_H
 
