@@ -658,6 +658,23 @@ constexpr typename vector<T, Allocator>::iterator vector<T, Allocator>::insert(c
     return iterator(m_arr + index);
 }
 
+template <class T, class Allocator>
+template <class... Args>
+constexpr typename vector<T, Allocator>::iterator vector<T, Allocator>::emplace(const_iterator pos, 
+    Args&& ...args)
+{
+    const size_type index = pos - cbegin();
+    if (m_size >= m_capacity) reserve(2 * m_capacity);
+
+    for (size_type i = m_size; i > index; i--)
+        m_arr[i] = m_arr[i - 1];
+
+    std::allocator_traits<allocator_type>::construct(m_alloc, m_arr + index, std::forward<Args>(args)...);
+    
+    m_size++;
+    return (m_arr + index);
+    
+}
 
 
 
